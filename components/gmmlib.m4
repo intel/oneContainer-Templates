@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -31,25 +31,28 @@ dnl
 include(begin.m4)
 
 DECLARE(`GMMLIB_VER',intel-gmmlib-20.2.5)
+DECLARE(`GMMLIB_SRC_REPO',https://github.com/intel/gmmlib/archive/GMMLIB_VER.tar.gz)
 
-ifelse(OS_NAME,ubuntu,dnl
-`define(`GMMLIB_BUILD_DEPS',`ca-certificates cmake g++ make wget')'
-)
+ifelse(OS_NAME,ubuntu,`
+define(`GMMLIB_BUILD_DEPS',`ca-certificates ifdef(`BUILD_CMAKE',,cmake) g++ make wget')
+')
 
-ifelse(OS_NAME,centos,dnl
-`define(`GMMLIB_BUILD_DEPS',`cmake gcc-c++ make wget')'
-)
+ifelse(OS_NAME,centos,`
+define(`GMMLIB_BUILD_DEPS',`ifdef(`BUILD_CMAKE',,cmake3) gcc-c++ make wget')
+')
 
-define(`BUILD_GMMLIB',
-ARG GMMLIB_REPO=https://github.com/intel/gmmlib/archive/GMMLIB_VER.tar.gz
+define(`BUILD_GMMLIB',`
+# build gmmlib
+ARG GMMLIB_REPO=GMMLIB_SRC_REPO
 RUN cd BUILD_HOME && \
   wget -O - ${GMMLIB_REPO} | tar xz
 RUN cd BUILD_HOME/gmmlib-GMMLIB_VER && mkdir build && cd build && \
-  cmake -DCMAKE_INSTALL_PREFIX=BUILD_PREFIX -DCMAKE_INSTALL_LIBDIR=BUILD_LIBDIR .. && \
+  ifdef(`BUILD_CMAKE',cmake,ifelse(OS_NAME,centos,cmake3,cmake)) \
+    -DCMAKE_INSTALL_PREFIX=BUILD_PREFIX -DCMAKE_INSTALL_LIBDIR=BUILD_LIBDIR .. && \
   make -j$(nproc) && \
   make install DESTDIR=BUILD_DESTDIR && \
   make install
-)
+')
 
 REG(GMMLIB)
 

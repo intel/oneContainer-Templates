@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -33,20 +33,22 @@ include(begin.m4)
 include(ffmpeg.m4)
 include(gst-plugins-base.m4)
 
-ifelse(OS_NAME,ubuntu,dnl
-`define(`GSTLIBAV_BUILD_DEPS',`ca-certificates tar g++ wget meson')'
-`define(`GSTLIBAV_INSTALL_DEPS',`')'
-)
+ifelse(OS_NAME,ubuntu,`
+define(`GSTLIBAV_BUILD_DEPS',`ca-certificates tar g++ wget ifdef(`BUILD_MESON',,meson)')
+')
 
-ifelse(OS_NAME,centos,dnl
-`define(`GSTLIBAV_BUILD_DEPS',` wget tar gcc-c++ meson')'
-`define(`GSTLIBAV_INSTALL_DEPS',`')'
-)
+ifelse(OS_NAME,centos,`
+define(`GSTLIBAV_BUILD_DEPS',`wget tar gcc-c++ ifdef(`BUILD_MESON',,meson)')
+')
 
-define(`BUILD_GSTLIBAV',
+define(`BUILD_GSTLIBAV',`
+# build gst-plugin-libav
 ARG GSTLIBAV_REPO=https://github.com/GStreamer/gst-libav/archive/GSTCORE_VER.tar.gz
 RUN cd BUILD_HOME && \
     wget -O - ${GSTLIBAV_REPO} | tar xz
+
+ifdef(`GSTLIBAV_PATCH_PATH',`PATCH(BUILD_HOME/gst-libav-GSTCORE_VER,GSTLIBAV_PATCH_PATH)')dnl
+
 RUN cd BUILD_HOME/gst-libav-GSTCORE_VER && \
     meson build --libdir=BUILD_LIBDIR --libexecdir=BUILD_LIBDIR \
     --prefix=BUILD_PREFIX --buildtype=plain \
@@ -54,7 +56,7 @@ RUN cd BUILD_HOME/gst-libav-GSTCORE_VER && \
     cd build && \
     ninja install && \
     DESTDIR=BUILD_DESTDIR ninja install
-)
+')
 
 REG(GSTLIBAV)
 

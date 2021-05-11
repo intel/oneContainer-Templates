@@ -29,7 +29,9 @@ dnl OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE US
 dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 define(`ENABLE_CENTOS_REPO',`dnl
-RUN sed -i "s/enabled=0/enabled=1/g" /etc/yum.repos.d/CentOS-$1.repo
+RUN yum install -y dnf-plugins-core && \
+  yum config-manager --set-enabled $1 && \
+  rm -rf /var/yum/cache/*
 ')
 
 define(`INSTALL_CENTOS_REPO',`dnl

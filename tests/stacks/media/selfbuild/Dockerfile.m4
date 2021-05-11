@@ -43,7 +43,7 @@ FROM base as build
 RUN mkdir BUILD_HOME
 
 ifelse(OS_NAME,centos,ifelse(OS_VERSION,8,
-ENABLE_CENTOS_REPO(PowerTools)
+ENABLE_CENTOS_REPO(powertools)
 ))dnl
 BUILD_ALL()dnl
 CLEANUP()dnl

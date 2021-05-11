@@ -56,7 +56,7 @@ RUN cd BUILD_HOME && \
     make install
 )
 
-define(`FFMPEG_PATCH_SVT_AV1_VER',0.8.4)
+DECLARE(`FFMPEG_PATCH_SVT_AV1_VER',0.8.4)
 define(`FFMPEG_PATCH_SVT_AV1',`
 ARG FFMPEG_PATCH_SVT_AV1_REPO=https://github.com/AOMediaCodec/SVT-AV1/archive/v`'FFMPEG_PATCH_SVT_AV1_VER.tar.gz
 RUN cd BUILD_HOME && \

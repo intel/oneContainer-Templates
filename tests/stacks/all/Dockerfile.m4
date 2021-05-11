@@ -61,6 +61,7 @@ include(gst-orc.m4)
 include(gst-svt.m4)
 ifelse(OS_NAME,ubuntu,`dnl
 include(dldt-ie.m4)
+include(gst-gva.m4)
 ')
 include(nginx-flv.m4)
 include(nginx-upload.m4)
@@ -73,7 +74,7 @@ FROM base as build
 ifelse(OS_NAME,centos,
 INSTALL_CENTOS_REPO(epel-release)
 ifelse(OS_VERSION,8,`
-ENABLE_CENTOS_REPO(PowerTools)
+ENABLE_CENTOS_REPO(powertools)
 INSTALL_CENTOS_RPMFUSION_REPO(OS_VERSION)
 INSTALL_CENTOS_OKEY_REPO(OS_VERSION)
 INSTALL_CENTOS_RAVEN_RELEASE_REPO(OS_VERSION)
@@ -87,7 +88,7 @@ FROM base
 ifelse(OS_NAME,centos,
 INSTALL_CENTOS_REPO(epel-release)
 ifelse(OS_VERSION,8,`
-ENABLE_CENTOS_REPO(PowerTools)
+ENABLE_CENTOS_REPO(powertools)
 INSTALL_CENTOS_RPMFUSION_REPO(OS_VERSION)
 INSTALL_CENTOS_OKEY_REPO(OS_VERSION)
 INSTALL_CENTOS_RAVEN_RELEASE_REPO(OS_VERSION)

@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2021, Intel Corporation
+dnl Copyright (c) 2020, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,40 @@ dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
 include(begin.m4)
 
-DECLARE(`LIBOPUS_VER',1.3.1)
+DECLARE(`OCL_VER',20.40.18075)
+DECLARE(`OCL_L0',true)
+DECLARE(`OCL_CLINFO',false)
+DECLARE(`OCL_SUPPORT_DG1',true)
 
-ifelse(OS_NAME,ubuntu,`
-define(`LIBOPUS_BUILD_DEPS',`ca-certificates wget autoconf libtool make')
+define(`CLINFO_INSTALL',dnl
+ifelse(OCL_CLINFO,true,clinfo))dnl
+
+include(igc.m4)
+ifelse(OCL_L0,true,`include(level-zero.m4)')
+include(gmmlib.m4)
+
+ifelse(OS_NAME,ubuntu,`dnl
+define(`OCL_BUILD_DEPS',`ca-certificates cmake make g++ pkg-config wget')
+define(`OCL_INSTALL_DEPS',`CLINFO_INSTALL')
 ')
 
-ifelse(OS_NAME,centos,`
-define(`LIBOPUS_BUILD_DEPS',`wget autoconf libtool make')
-')
+define(`BUILD_OCL',
+ARG OCL_REPO=https://github.com/intel/compute-runtime/archive/OCL_VER.tar.gz
 
-define(`BUILD_LIBOPUS',`
-# build libopus
-ARG LIBOPUS_REPO=https://archive.mozilla.org/pub/opus/opus-LIBOPUS_VER.tar.gz
 RUN cd BUILD_HOME && \
-    wget -O - ${LIBOPUS_REPO} | tar xz && \
-    cd opus-LIBOPUS_VER && \
-    ./configure --prefix=BUILD_PREFIX --libdir=BUILD_LIBDIR --enable-shared && \
+    wget -O - ${OCL_REPO} | tar xz && \
+    cd compute-runtime-OCL_VER && mkdir build && cd build && \
+    cmake ../ \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DSKIP_UNIT_TESTS=true \
+    -DSKIP_NEO_UNIT_TESTS=true \
+    -DSUPPORT_DG1=OCL_SUPPORT_DG1 \
+    -DBUILD_WITH_L0=OCL_L0 && \
     make -j$(nproc) && \
-    make install DESTDIR=BUILD_DESTDIR && \
-    make install
-')
+    make install && \
+    make install DESTDIR=BUILD_DESTDIR
+)
 
-REG(LIBOPUS)
+REG(OCL)
 
 include(end.m4)dnl

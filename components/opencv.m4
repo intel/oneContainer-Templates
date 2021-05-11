@@ -30,17 +30,55 @@ dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
 include(begin.m4)
 
-DECLARE(`OPENCV_VER',4.4.0)
+DECLARE(`OPENCV_VER',4.5.1)
+DECLARE(`OPENCV_EIGEN',true)
+DECLARE(`OPENCV_GTK2',false)
+DECLARE(`OPENCV_OPENEXR',false)
+DECLARE(`OPENCV_OPENJPEG',false)
+DECLARE(`OPENCV_GSTREAMER',true)
+DECLARE(`OPENCV_JASPER',false)
+
+define(`OPENCV_EIGEN_BUILD',dnl
+ifelse(OPENCV_EIGEN,true,`ifelse(
+OS_NAME,ubuntu,libeigen3-dev,
+OS_NAME,centos,eigen3-devel)'))dnl
+
+define(`OPENCV_EIGEN_INSTALL',dnl
+ifelse(OPENCV_EIGEN,true,`ifelse(
+OS_NAME,ubuntu,libeigen3-dev,
+OS_NAME,centos,gtk2-devel)'))dnl
+
+define(`OPENCV_GTK2_BUILD',dnl
+ifelse(OPENCV_GTK2,true,`ifelse(
+OS_NAME,ubuntu,libgtk2.0-dev,
+OS_NAME,centos,gtk2-devel)'))dnl
+
+define(`OPENCV_GTK2_INSTALL',dnl
+ifelse(OPENCV_GTK2,true,`ifelse(
+OS_NAME,ubuntu,libgtk2.0-0,
+OS_NAME,centos,gtk2)'))dnl
+
+define(`OPENCV_OPENJPEG_BUILD',dnl
+ifelse(OPENCV_OPENJPEG,true,`ifelse(
+OS_NAME,ubuntu,libopenjp2-7-dev,
+OS_NAME,centos,openjpeg2-devel)'))dnl
+
+define(`OPENCV_OPENJPEG_INSTALL',dnl
+ifelse(OPENCV_OPENJPEG,true,`ifelse(
+OS_NAME,ubuntu,libopenjp2-7,
+OS_NAME,centos,openjpeg2)'))dnl
 
 ifelse(OS_NAME,ubuntu,dnl
-`define(`OPENCV_BUILD_DEPS',`ca-certificates cmake gcc g++ make wget')'
+`define(`OPENCV_BUILD_DEPS',`ca-certificates gcc g++ make wget cmake pkg-config OPENCV_EIGEN_BUILD OPENCV_GTK2_BUILD OPENCV_OPENJPEG_BUILD')'
+`define(`OPENCV_INSTALL_DEPS',`OPENCV_EIGEN_INSTALL OPENCV_GTK2_INSTALL OPENCV_OPENJPEG_INSTALL')'
 )
 
 ifelse(OS_NAME,centos,dnl
-`define(`OPENCV_BUILD_DEPS',`cmake gcc gcc-c++ make wget')'
+`define(`OPENCV_BUILD_DEPS',`gcc gcc-c++ make wget cmake OPENCV_EIGEN_BUILD OPENCV_GTK2_BUILD OPENCV_OPENJPEG_BUILD')'
+`define(`OPENCV_INSTALL_DEPS',`OPENCV_EIGEN_INSTALL OPENCV_GTK2_INSTALL OPENCV_OPENJPEG_INSTALL')'
 )
 
-define(`OPENCV_INSTALL_DEPS',`')
+ifelse(OPENCV_GSTREAMER,true,`include(gst-plugins-base.m4)')dnl
 
 define(`BUILD_OPENCV',
 ARG OPENCV_REPO=https://github.com/opencv/opencv/archive/OPENCV_VER.tar.gz
@@ -57,6 +95,10 @@ RUN cd BUILD_HOME/opencv-OPENCV_VER && mkdir build && cd build && \
     -DBUILD_EXAMPLES=OFF \
     -DBUILD_PERF_TESTS=OFF \
     -DBUILD_TESTS=OFF \
+    -DWITH_OPENEXR=ifelse(OPENCV_OPENEXR,false,OFF,ON) \
+    -DWITH_OPENJPEG=ifelse(OPENCV_OPENJPEG,true,ON,OFF) \
+    -DWITH_GSTREAMER=ifelse(OPENCV_GSTREAMER,true,ON,OFF) \
+    -DWITH_JASPER=ifelse(OPENCV_JASPER,true,ON,OFF) \
     .. && \
   make -j "$(nproc)" && \
   make install DESTDIR=BUILD_DESTDIR && \

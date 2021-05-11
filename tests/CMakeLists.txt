@@ -35,19 +35,21 @@ function(get_image_bits IMAGE IMAGE_NAME IMAGE_TAG)
   set(${IMAGE_TAG} ${IMAGE_TAG_} PARENT_SCOPE)
 endfunction()
 
-function(add_docker_build_test IMAGE DOCKERFILE TARGET )
-  cmake_parse_arguments(PARSE_ARGV 2 ARG "" "TARGET" "")
+function(add_docker_build_test IMAGE DOCKERFILE TIMEOUT TARGET)
+  set(oneValueArgs TIMEOUT TARGET)
+  cmake_parse_arguments(PARSE_ARGV 2 ARG "" "${oneValueArgs}" "")
   add_test(NAME ${IMAGE}
     COMMAND docker build
       --build-arg http_proxy=$ENV{http_proxy}
       --build-arg https_proxy=$ENV{https_proxy}
       --target "${ARG_TARGET}"
       -t docker-templates/tests/${IMAGE} -f ${DOCKERFILE} .)
+  set_tests_properties(${IMAGE} PROPERTIES TIMEOUT "${ARG_TIMEOUT}" )
   message(" * ${IMAGE}")
 endfunction()
 
 function(add_test_image _IMAGE _TEMPLATE)
-  set(oneValueArgs OUTDIR TARGET)
+  set(oneValueArgs OUTDIR TIMEOUT TARGET)
   cmake_parse_arguments(PARSE_ARGV 2 ARG "" "${oneValueArgs}" "DEPENDS")
 
   if(NOT ARG_OUTDIR)
@@ -56,7 +58,7 @@ function(add_test_image _IMAGE _TEMPLATE)
   set(_DOCKERFILE ${ARG_OUTDIR}/Dockerfile)
   m4(${_DOCKERFILE} ${_TEMPLATE} DEPENDS ${ARG_DEPENDS})
   add_custom_target(${_IMAGE}-Dockerfile ALL DEPENDS ${_DOCKERFILE})
-  add_docker_build_test(${_IMAGE} ${_DOCKERFILE} TARGET ${ARG_TARGET})
+  add_docker_build_test(${_IMAGE} ${_DOCKERFILE} TIMEOUT ${ARG_TIMEOUT} TARGET ${ARG_TARGET})
 endfunction()
 
 function(add_run_test IMAGE TEST_SCRIPT)

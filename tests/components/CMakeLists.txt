@@ -28,8 +28,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-function(test_single_component _COMPONENT)
-  cmake_parse_arguments(PARSE_ARGV 1 ARG "" "" "IMAGES")
+function(test_single_component _COMPONENT )
+  cmake_parse_arguments(PARSE_ARGV 1 ARG "" "TIMEOUT" "IMAGES")
+
+  if(NOT DEFINED ARG_TIMEOUT)
+    set(ARG_TIMEOUT 3600)
+  endif()
+  message("Timeout set to ${ARG_TIMEOUT}")
 
   set(M4FLAGS_TMP ${M4FLAGS} -E -I ${CMAKE_SOURCE_DIR}/system -I ${CMAKE_SOURCE_DIR}/components)
 
@@ -45,10 +50,9 @@ function(test_single_component _COMPONENT)
       endif()
 
       set(TEST_IMAGE ${IMAGE_NAME}-${IMAGE_TAG}-${_COMPONENT}-${FLAVOR})
-
       add_test_image(${TEST_IMAGE} ${CMAKE_SOURCE_DIR}/tests/components/single.m4
         DEPENDS ${system_srcs} ${components_srcs}
-        TARGET ${DOCKER_BUILD_TARGET})
+        TARGET ${DOCKER_BUILD_TARGET} TIMEOUT ${ARG_TIMEOUT})
 
       if(${DOCKER_BUILD_TARGET} MATCHES last)
         m4(${CMAKE_CURRENT_BINARY_DIR}/.docker/${TEST_IMAGE}/consistency.sh ${CMAKE_SOURCE_DIR}/tests/consistency.sh.m4 EXE)
@@ -67,25 +71,40 @@ set(IMAGES ubuntu:18.04 ubuntu:20.04 centos:7 centos:8)
 set(IMAGES_cmake3 ubuntu:18.04 ubuntu:20.04 centos:8)
 set(IMAGES_meson47 ubuntu:20.04 centos:7 centos:8)
 
+test_single_component(cmake IMAGES ${IMAGES})
 test_single_component(dav1d IMAGES ${IMAGES_meson47})
 test_single_component(dldt-ie IMAGES ubuntu:20.04)       # cmake-3.13
 test_single_component(ffmpeg IMAGES ${IMAGES})
 test_single_component(gmmlib IMAGES ${IMAGES})
+test_single_component(igc TIMEOUT 10800 IMAGES ubuntu:20.04)
+test_single_component(level-zero IMAGES ubuntu:20.04)
+test_single_component(libaom IMAGES ${IMAGES})
+test_single_component(libfdk-aac IMAGES ${IMAGES})
+test_single_component(libogg IMAGES ${IMAGES})
+test_single_component(libopus IMAGES ${IMAGES})
 test_single_component(libva2 IMAGES ${IMAGES})
-test_single_component(libva2-utils IMAGES ${IMAGES})
+test_single_component(libva2-utils  IMAGES ${IMAGES})
+test_single_component(libvorbis IMAGES ${IMAGES})
+test_single_component(libvpx IMAGES ${IMAGES})
 test_single_component(libx264 IMAGES ${IMAGES})
+test_single_component(libx265 IMAGES ${IMAGES})
 test_single_component(media-driver IMAGES ${IMAGES})
+test_single_component(meson IMAGES ${IMAGES})
 test_single_component(msdk IMAGES ${IMAGES})
+test_single_component(nasm IMAGES ${IMAGES})
 test_single_component(nginx IMAGES ${IMAGES})
 test_single_component(svt-av1 IMAGES ${IMAGES})
 test_single_component(svt-hevc IMAGES ${IMAGES})
 test_single_component(gst-core IMAGES ${IMAGES_meson47})
+test_single_component(gst-libav IMAGES ${IMAGES_meson47})
+test_single_component(gst-orc IMAGES ${IMAGES_meson47})
 test_single_component(gst-plugins-base IMAGES ${IMAGES_meson47})
 test_single_component(gst-plugins-good IMAGES ${IMAGES_meson47})
 test_single_component(gst-plugins-bad IMAGES ${IMAGES_meson47})
 test_single_component(gst-plugins-ugly IMAGES ${IMAGES_meson47})
-test_single_component(gst-libav IMAGES ${IMAGES_meson47})
-test_single_component(gst-vaapi IMAGES ${IMAGES_meson47})
-test_single_component(opencv IMAGES ${IMAGES_cmake3})
-test_single_component(gst-orc IMAGES ${IMAGES_meson47})
 test_single_component(gst-svt IMAGES ${IMAGES_meson47})
+test_single_component(gst-vaapi IMAGES ${IMAGES_meson47})
+test_single_component(gst-gva IMAGES ubuntu:20.04)
+test_single_component(ocl TIMEOUT 14400 IMAGES ubuntu:20.04)
+test_single_component(opencv IMAGES ubuntu:20.04 centos:8)
+test_single_component(yasm IMAGES ${IMAGES})

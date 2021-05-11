@@ -42,6 +42,8 @@ DECLARE(`FFMPEG_ENABLE_LIBMFX',ifdef(`BUILD_MSDK',FFMPEG_ENABLE_HWACCELS,false))
 DECLARE(`FFMPEG_ENABLE_VAAPI',ifdef(`BUILD_LIBVA2',FFMPEG_ENABLE_HWACCELS,false))
 DECLARE(`FFMPEG_ENABLE_X265',false)
 DECLARE(`FFMPEG_ENABLE_X264',false)
+DECLARE(`FFMPEG_ENABLE_FFPLAY',false)
+DECLARE(`FFMPEG_ENABLE_FFPROBE',false)
 
 include(nasm.m4)
 
@@ -79,14 +81,54 @@ ifelse(FFMPEG_ENABLE_X264,true,`ifelse(
 OS_NAME,ubuntu,ifdef(`BUILD_LIBX264',,libx264-155),
 OS_NAME,centos,ifdef(`BUILD_LIBX264',,libx264-static))'))dnl
 
+define(`FFMPEG_ENABLE_LIBASS_BUILD',dnl
+ifelse(FFMPEG_ENABLE_LIBASS,true,`ifelse(
+OS_NAME,ubuntu,libass-dev,
+OS_NAME,centos,libass-devel)'))dnl
+
+define(`FFMPEG_ENABLE_LIBASS_INSTALL',dnl
+ifelse(FFMPEG_ENABLE_LIBASS,true,`ifelse(
+OS_NAME,ubuntu,libass9,
+OS_NAME,centos,libass)'))dnl
+
+define(`FFMPEG_LIBFREETYPE_BUILD',dnl
+ifelse(FFMPEG_LIBFREETYPE,true,`ifelse(
+OS_NAME,ubuntu,libfreetype6-dev,
+OS_NAME,centos,freetype-devel)'))dnl
+
+define(`FFMPEG_LIBFREETYPE_INSTALL',dnl
+ifelse(FFMPEG_LIBFREETYPE,true,`ifelse(
+OS_NAME,ubuntu,libfreetype6,
+OS_NAME,centos,freetype)'))dnl
+
+define(`FFMPEG_ENABLE_FFPLAY_BUILD',dnl
+ifelse(FFMPEG_ENABLE_FFPLAY,true,`ifelse(
+OS_NAME,ubuntu,libsdl2-dev,
+OS_NAME,centos,SDL2-devel)'))dnl
+
+define(`FFMPEG_ENABLE_FFPLAY_INSTALL',dnl
+ifelse(FFMPEG_ENABLE_FFPLAY,true,`ifelse(
+OS_NAME,ubuntu,libsdl2-2.0-0 libsndio7.0,
+OS_NAME,centos,SDL2 libxcb)'))dnl
+
+define(`FFMPEG_ENABLE_X11_BUILD',dnl
+ifelse(FFMPEG_ENABLE_X11,true,`ifelse(
+OS_NAME,ubuntu,libxv-dev,
+OS_NAME,centos,libXv-devel)'))dnl
+
+define(`FFMPEG_ENABLE_X11_INSTALL',dnl
+ifelse(FFMPEG_ENABLE_X11,true,`ifelse(
+OS_NAME,ubuntu,libxv1,
+OS_NAME,centos,libXv)'))dnl
+
 ifelse(OS_NAME,ubuntu,`
-define(`FFMPEG_BUILD_DEPS',ca-certificates wget patch FFMPEG_ENABLE_X264_BUILD FFMPEG_ENABLE_X265_BUILD FFMPEG_V4L2_BUILD ifelse(FFMPEG_ENABLE_LIBASS,true,libass-dev )ifelse(FFMPEG_LIBFREETYPE,true,libfreetype6-dev ))
-define(`FFMPEG_INSTALL_DEPS',FFMPEG_ENABLE_X264_INSTALL FFMPEG_ENABLE_X265_INSTALL FFMPEG_V4L2_INSTALL)
+define(`FFMPEG_BUILD_DEPS',ca-certificates wget patch FFMPEG_ENABLE_X264_BUILD FFMPEG_ENABLE_X265_BUILD FFMPEG_V4L2_BUILD FFMPEG_ENABLE_LIBASS_BUILD FFMPEG_LIBFREETYPE_BUILD FFMPEG_ENABLE_FFPLAY_BUILD FFMPEG_ENABLE_X11_BUILD)
+define(`FFMPEG_INSTALL_DEPS',FFMPEG_ENABLE_X264_INSTALL FFMPEG_ENABLE_X265_INSTALL FFMPEG_V4L2_INSTALL FFMPEG_ENABLE_LIBASS_INSTALL FFMPEG_LIBFREETYPE_INSTALL FFMPEG_ENABLE_FFPLAY_INSTALL FFMPEG_ENABLE_X11_INSTALL)
 ')
 
 ifelse(OS_NAME,centos,`
-define(`FFMPEG_BUILD_DEPS',wget patch FFMPEG_ENABLE_X264_BUILD FFMPEG_ENABLE_X265_BUILD FFMPEG_V4L2_BUILD ifelse(FFMPEG_ENABLE_LIBASS,true,libass-devel )ifelse(FFMPEG_ENABLE_LIBFREETYPE,true,freetype-devel ))
-define(`FFMPEG_INSTALL_DEPS',FFMPEG_ENABLE_X264_INSTALL FFMPEG_ENABLE_X265_INSTALL FFMPEG_V4L2_INSTALL)
+define(`FFMPEG_BUILD_DEPS',wget patch FFMPEG_ENABLE_X264_BUILD FFMPEG_ENABLE_X265_BUILD FFMPEG_V4L2_BUILD FFMPEG_ENABLE_LIBASS_BUILD FFMPEG_LIBFREETYPE_BUILD FFMPEG_ENABLE_FFPLAY_BUILD FFMPEG_ENABLE_X11_BUILD)
+define(`FFMPEG_INSTALL_DEPS',FFMPEG_ENABLE_X264_INSTALL FFMPEG_ENABLE_X265_INSTALL FFMPEG_V4L2_INSTALL FFMPEG_ENABLE_LIBASS_INSTALL FFMPEG_LIBFREETYPE_INSTALL ifelse(OS_VERSION,7,glibc ) FFMPEG_ENABLE_FFPLAY_INSTALL FFMPEG_ENABLE_X11_INSTALL)
 ')
 
 define(`BUILD_FFMPEG',`
@@ -96,6 +138,7 @@ RUN cd BUILD_HOME && \
 
 ifdef(`BUILD_SVT_AV1',`FFMPEG_PATCH_SVT_AV1(BUILD_HOME/FFmpeg-FFMPEG_VER)')dnl
 ifdef(`BUILD_SVT_HEVC',`FFMPEG_PATCH_SVT_HEVC(BUILD_HOME/FFmpeg-FFMPEG_VER)')dnl
+ifdef(`FFMPEG_PATCH_PATH',`PATCH(BUILD_HOME/FFmpeg-FFMPEG_VER,FFMPEG_PATCH_PATH)')dnl
 
 RUN cd BUILD_HOME/FFmpeg-FFMPEG_VER && \
     ./configure --prefix=BUILD_PREFIX --libdir=BUILD_LIBDIR --enable-shared --disable-static --disable-doc --disable-htmlpages \
@@ -120,17 +163,11 @@ RUN cd BUILD_HOME/FFmpeg-FFMPEG_VER && \
     ifdef(`BUILD_SVT_HEVC',--enable-libsvthevc )dnl
     ifdef(`BUILD_LIBAOM',--enable-libaom )dnl
     ifdef(`BUILD_DAV1D',--enable-libdav1d )dnl
+    ifelse(FFMPEG_ENABLE_FFPLAY,true,--enable-ffplay )dnl
+    ifelse(FFMPEG_ENABLE_FFPROBE,true,--enable-ffprobe )dnl
     && make -j$(nproc) && \
     make install DESTDIR=BUILD_DESTDIR && \
     make install
-')
-
-ifelse(OS_NAME,ubuntu,`
-define(`FFMPEG_INSTALL_DEPS',ifelse(FFMPEG_ENABLE_LIBASS,true,libass9 )ifelse(FFMPEG_LIBFREETYPE,true,libfreetype6 ))
-')
-
-ifelse(OS_NAME,centos,`
-define(`FFMPEG_INSTALL_DEPS',ifelse(FFMPEG_ENABLE_LIBASS,true,libass )ifelse(FFMPEG_ENABLE_LIBFREETYPE,true,freetype )ifelse(OS_VERSION,7,glibc ))
 ')
 
 REG(FFMPEG)

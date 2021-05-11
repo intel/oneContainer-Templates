@@ -30,28 +30,27 @@ dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
 include(begin.m4)
 
-DECLARE(`LIBOPUS_VER',1.3.1)
+DECLARE(`CMAKE_VER',3.19.4)
 
 ifelse(OS_NAME,ubuntu,`
-define(`LIBOPUS_BUILD_DEPS',`ca-certificates wget autoconf libtool make')
+define(`CMAKE_BUILD_DEPS',`g++ ca-certificates wget make libcurl4-gnutls-dev zlib1g-dev')
 ')
 
 ifelse(OS_NAME,centos,`
-define(`LIBOPUS_BUILD_DEPS',`wget autoconf libtool make')
+define(`CMAKE_BUILD_DEPS',`wget gcc-c++ make libcurl-devel zlib-devel')
 ')
 
-define(`BUILD_LIBOPUS',`
-# build libopus
-ARG LIBOPUS_REPO=https://archive.mozilla.org/pub/opus/opus-LIBOPUS_VER.tar.gz
+define(`BUILD_CMAKE',`
+# build cmake
+ARG CMAKE_REPO=https://cmake.org/files
 RUN cd BUILD_HOME && \
-    wget -O - ${LIBOPUS_REPO} | tar xz && \
-    cd opus-LIBOPUS_VER && \
-    ./configure --prefix=BUILD_PREFIX --libdir=BUILD_LIBDIR --enable-shared && \
+    wget -O - ${CMAKE_REPO}/v`'patsubst(CMAKE_VER,`.[0-9]$')/cmake-CMAKE_VER.tar.gz | tar xz && \
+    cd cmake-CMAKE_VER && \
+    ./bootstrap --prefix=BUILD_PREFIX --system-curl && \
     make -j$(nproc) && \
-    make install DESTDIR=BUILD_DESTDIR && \
     make install
 ')
 
-REG(LIBOPUS)
+REG(CMAKE)
 
 include(end.m4)dnl

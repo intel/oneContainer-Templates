@@ -48,9 +48,15 @@ DECLARE(`BUILD_DESTDIR',/opt/dist)
 DECLARE(`BUILD_PREFIX',/usr/local)
 DECLARE(`BUILD_BINDIR',BUILD_PREFIX/bin)
 DECLARE(`BUILD_LIBDIR',BUILD_PREFIX/ifelse(OS_NAME,centos,lib64,lib))
-DECLARE(`BUILD_PATCHES',`')
 
-DECLARE(`CLEANUP_DEV',yes)
+# These macros enable/disable artifacts cleanup after the components
+# build stage.
+
+# Cleanup development files such as *.h, *.pc, *.a
+DECLARE(`CLEANUP_CC',yes)
+# Cleanup components documents, usually those which land in /usr/share/doc
+DECLARE(`CLEANUP_DOC',yes)
+# Cleanup manual pages
 DECLARE(`CLEANUP_MAN',yes)
 
 DECLARE(`PREAMBLE',dnl
@@ -144,6 +150,18 @@ popdef(`_list')dnl
 popdef(`_build_provides')dnl
 popdef(`_tmp')')
 
+#
+# Definition to apply a given patch in the host to a required component
+# within the Dockerfile
+# Usage:
+# PATCH(<component_source_path>,<host_patch_path>)
+#
+define(`PATCH',`
+COPY $2 $1
+RUN cd $1 && \
+    for patch_file in $(find -iname "*.patch"); do patch -p1 < ${patch_file}; done || true
+')
+
 # Expands into list of rules for the components specified in the ``$@`` arguments.
 # For the component ``$n`` rule should be previously defined as ``BUILD_$n`` macro.
 # If ``BUILD_$n`` macro was not defined, then rules expansion for this component is
@@ -211,7 +229,6 @@ OS_NAME,centos,YUM_INSTALL($@),
 # install commands (for all components) first and then it instantiates component
 # specific rules.
 define(`BUILD_ALL',`dnl
-ifelse(BUILD_PATCHES,`',,COPY BUILD_PATCHES /opt/patches)
 RUN mkdir -p BUILD_HOME && mkdir -p BUILD_DESTDIR
 
 ENV PKG_CONFIG_PATH=BUILD_LIBDIR/pkgconfig
@@ -276,20 +293,30 @@ undefine(`COMPONENTS_LIST')
 define(`COMPONENTS_LIST',REMOVE_DUPLICATES(APPEND(_tmp,$1)))
 popdef(`_tmp')')
 
+# Expands into list of rules for the components specified in the ``$@`` arguments.
+# For the component ``$n`` rule should be previously defined as ``CLEANUP_$n`` macro.
+# If ``CLEANUP_$n`` macro was not defined, then rules expansion for this component is
+# ignored during cleanup.
+define(`CLEANUP_COMPONENTS',`dnl
+ifelse($#,0,,`ifdef(`CLEANUP_$1',`dnl
+indir(`CLEANUP_$1')')dnl
+ifelse($#,1,,`CLEANUP_COMPONENTS(shift($@))')')')
+
 # Performs generic cleanup of the built packages. If packages install
-#
 define(`CLEANUP',`dnl
-RUN echo "Start cleanup" && \
-ifelse(CLEANUP_DEV,yes,`dnl
-    rm -rf BUILD_DESTDIR/BUILD_PREFIX/include && \
-    rm -rf BUILD_DESTDIR/BUILD_PREFIX/share/doc && \
-    rm -rf BUILD_DESTDIR/BUILD_PREFIX/share/gtk-doc && \
+ifelse(defn(`CLEANUP_DOC',`CLEANUP_CC',`CLEANUP_MAN'),`nonono',,`dnl
+# cleanup
+')dnl
+ifelse(CLEANUP_CC,yes,`dnl
+RUN rm -rf defn(`BUILD_DESTDIR',`BUILD_PREFIX')/include && \
+    rm -rf defn(`BUILD_DESTDIR',`BUILD_LIBDIR')/pkgconfig && \
+    find BUILD_DESTDIR -name "*.a" -exec rm -f {} \; || echo ""
+')dnl
+ifelse(CLEANUP_DOC,yes,`dnl
+RUN rm -rf defn(`BUILD_DESTDIR',`BUILD_PREFIX')/share/doc defn(`BUILD_DESTDIR',`BUILD_PREFIX')/share/gtk-doc
 ')dnl
 ifelse(CLEANUP_MAN,yes,`dnl
-    rm -rf BUILD_DESTDIR/BUILD_PREFIX/share/man && \
+RUN rm -rf defn(`BUILD_DESTDIR',`BUILD_PREFIX')/share/man
 ')dnl
-ifelse(CLEANUP_DEV,yes,`dnl
-    ( find BUILD_DESTDIR -name "*.a" -exec rm -f {} \; ) && \
-')dnl
-    echo "Cleanup done"
+CLEANUP_COMPONENTS(ARGS(COMPONENTS_LIST))dnl
 ')

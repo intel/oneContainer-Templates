@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ define(`NGINX_UPLOAD_DEPS',`wget')
 ')
 
 define(`BUILD_NGINX_UPLOAD',`
+# build nginx upload
 ARG NGINX_UPLOAD_REPO=https://github.com/fdintino/nginx-upload-module/archive/NGINX_UPLOAD_VER.tar.gz
 RUN cd BUILD_HOME && \
     wget -O - ${NGINX_UPLOAD_REPO} | tar xz

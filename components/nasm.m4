@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,15 @@ include(begin.m4)
 DECLARE(`NASM_VER',2.15.05)
 
 ifelse(OS_NAME,ubuntu,`
-define(`NASM_BUILD_DEPS',ca-certificates wget tar g++ make bzip2)
+define(`NASM_BUILD_DEPS',`ca-certificates wget tar g++ make bzip2')
 ')
 
 ifelse(OS_NAME,centos,`
-define(`NASM_BUILD_DEPS',wget tar gcc-c++ make bzip2)
+define(`NASM_BUILD_DEPS',`wget tar gcc-c++ make bzip2')
 ')
 
 define(`BUILD_NASM',`
+# build nasm
 ARG NASM_REPO=https://www.nasm.us/pub/nasm/releasebuilds/NASM_VER/nasm-NASM_VER.tar.bz2
 RUN cd BUILD_HOME && \
     wget -O - ${NASM_REPO} | tar xj && \

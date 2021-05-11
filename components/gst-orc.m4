@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,16 @@ include(begin.m4)
 
 DECLARE(`GST_ORC_VER',0.4.32)
 
-ifelse(OS_NAME,ubuntu,dnl
-`define(`GSTORC_BUILD_DEPS',`ca-certificates tar g++ wget meson')'
-`define(`GSTORC_INSTALL_DEPS',`')'
-)
+ifelse(OS_NAME,ubuntu,`
+define(`GSTORC_BUILD_DEPS',`ca-certificates tar g++ wget ifdef(`BUILD_MESON',,meson)')
+')
 
-ifelse(OS_NAME,centos,dnl
-`define(`GSTORC_BUILD_DEPS',` wget tar gcc-c++ meson')'
-`define(`GSTORC_INSTALL_DEPS',`')'
-)
+ifelse(OS_NAME,centos,`
+define(`GSTORC_BUILD_DEPS',`wget tar gcc-c++ ifdef(`BUILD_MESON',,meson)')
+')
 
-define(`BUILD_GSTORC',
+define(`BUILD_GSTORC',`
+# build gst-plugin-orc
 ARG GSTORC_REPO=https://github.com/GStreamer/orc/archive/GST_ORC_VER.tar.gz
 RUN cd BUILD_HOME && \
     wget -O - ${GSTORC_REPO} | tar xz
@@ -53,7 +52,7 @@ RUN cd BUILD_HOME/orc-GST_ORC_VER && \
     cd build && \
     ninja install && \
     DESTDIR=BUILD_DESTDIR ninja install
-)
+')
 
 REG(GSTORC)
 

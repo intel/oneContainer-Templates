@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,15 @@ include(begin.m4)
 DECLARE(`LIBOGG_VER',1.3.4)
 
 ifelse(OS_NAME,ubuntu,`
-define(`LIBOGG_BUILD_DEPS',ca-certificates wget make autoconf automake g++)
+define(`LIBOGG_BUILD_DEPS',`ca-certificates wget make autoconf automake g++')
 ')
 
 ifelse(OS_NAME,centos,`
-define(`LIBOGG_BUILD_DEPS',wget make autoconf diffutils automake gcc-c++)
+define(`LIBOGG_BUILD_DEPS',`wget make autoconf diffutils automake gcc-c++')
 ')
 
 define(`BUILD_LIBOGG',`
+# build libogg
 ARG LIBOGG_REPO=https://downloads.xiph.org/releases/ogg/libogg-LIBOGG_VER.tar.gz
 
 RUN cd BUILD_HOME && \

@@ -32,7 +32,7 @@ cmake_minimum_required (VERSION 2.8)
 
 project(m4docker LANGUAGES NONE)
 
-set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MAJOR 2)
 set(PROJECT_VERSION_MINOR 0)
 
 include(GNUInstallDirs)

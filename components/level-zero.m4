@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2021, Intel Corporation
+dnl Copyright (c) 2020, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,25 @@ dnl OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 dnl
 include(begin.m4)
 
-DECLARE(`LIBOPUS_VER',1.3.1)
+DECLARE(`LEVELZERO_VER',1.0.26)
 
-ifelse(OS_NAME,ubuntu,`
-define(`LIBOPUS_BUILD_DEPS',`ca-certificates wget autoconf libtool make')
+ifelse(OS_NAME,ubuntu,`dnl
+define(`LEVELZERO_BUILD_DEPS',`ca-certificates cmake make ccache wget g++')
 ')
 
-ifelse(OS_NAME,centos,`
-define(`LIBOPUS_BUILD_DEPS',`wget autoconf libtool make')
-')
+define(`BUILD_LEVELZERO',
+ARG LEVELZERO_REPO=https://github.com/oneapi-src/level-zero/archive/v`'LEVELZERO_VER.tar.gz
 
-define(`BUILD_LIBOPUS',`
-# build libopus
-ARG LIBOPUS_REPO=https://archive.mozilla.org/pub/opus/opus-LIBOPUS_VER.tar.gz
 RUN cd BUILD_HOME && \
-    wget -O - ${LIBOPUS_REPO} | tar xz && \
-    cd opus-LIBOPUS_VER && \
-    ./configure --prefix=BUILD_PREFIX --libdir=BUILD_LIBDIR --enable-shared && \
-    make -j$(nproc) && \
-    make install DESTDIR=BUILD_DESTDIR && \
-    make install
-')
+    wget -O - ${LEVELZERO_REPO} | tar xz && \
+    cd level-zero-LEVELZERO_VER && mkdir build && cd build && \
+    cmake .. && \
+    cmake --build . --config Release && \
+    make -j $(nproc) && \
+    make install && \
+    make install DESTDIR=BUILD_DESTDIR
+)
 
-REG(LIBOPUS)
+REG(LEVELZERO)
 
 include(end.m4)dnl

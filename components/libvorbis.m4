@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,16 @@ include(libogg.m4)
 DECLARE(`LIBVORBIS_VER',1.3.7)
 
 ifelse(OS_NAME,ubuntu,`
-define(`LIBVORBIS_BUILD_DEPS',ca-certificates wget make autoconf automake)
+define(`LIBVORBIS_BUILD_DEPS',`ca-certificates wget make autoconf automake')
 ')
 
 ifelse(OS_NAME,centos,`
-define(`LIBVORBIS_BUILD_DEPS',wget make autoconf diffutils automake)
+define(`LIBVORBIS_BUILD_DEPS',`wget make autoconf diffutils automake')
 ')
 
 define(`BUILD_LIBVORBIS',`
+# build libvorbis
 ARG LIBVORBIS_REPO=https://downloads.xiph.org/releases/vorbis/libvorbis-LIBVORBIS_VER.tar.gz
-
 RUN cd BUILD_HOME && \
     wget -O - ${LIBVORBIS_REPO} | tar xz && \
     cd libvorbis-LIBVORBIS_VER && \

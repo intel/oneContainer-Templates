@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,15 @@ include(nasm.m4)
 DECLARE(`LIBVPX_VER',1.8.2)
 
 ifelse(OS_NAME,ubuntu,`
-define(`LIBVPX_BUILD_DEPS',git cmake make autoconf)
+define(`LIBVPX_BUILD_DEPS',`git ifdef(`BUILD_CMAKE',,cmake) make autoconf')
 ')
 
 ifelse(OS_NAME,centos,`
-define(`LIBVPX_BUILD_DEPS',git cmake make autoconf diffutils)
+define(`LIBVPX_BUILD_DEPS',`git ifdef(`BUILD_CMAKE',,cmake) make autoconf diffutils')
 ')
 
 define(`BUILD_LIBVPX',`
+# build libvpx
 ARG LIBVPX_REPO=https://chromium.googlesource.com/webm/libvpx.git
 RUN cd BUILD_HOME && \
     git clone ${LIBVPX_REPO} -b v`'LIBVPX_VER --depth 1 && \

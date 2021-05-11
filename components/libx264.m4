@@ -1,6 +1,6 @@
 dnl BSD 3-Clause License
 dnl
-dnl Copyright (c) 2020, Intel Corporation
+dnl Copyright (c) 2021, Intel Corporation
 dnl All rights reserved.
 dnl
 dnl Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,15 @@ DECLARE(`LIBX264_VER',stable)
 DECLARE(`LIBX264_GPL',false)
 
 ifelse(OS_NAME,ubuntu,`
-define(`LIBX264_BUILD_DEPS',git cmake make autoconf)
+define(`LIBX264_BUILD_DEPS',`git ifdef(`BUILD_CMAKE',,cmake) make autoconf')
 ')
 
 ifelse(OS_NAME,centos,`
-define(`LIBX264_BUILD_DEPS',git cmake make autoconf diffutils)
+define(`LIBX264_BUILD_DEPS',`git ifdef(`BUILD_CMAKE',,cmake) make autoconf diffutils')
 ')
 
 define(`BUILD_LIBX264',`
+# build libx264
 ARG LIBX264_REPO=https://github.com/mirror/x264
 RUN cd BUILD_HOME && \
     git clone ${LIBX264_REPO} -b LIBX264_VER --depth 1 && \
